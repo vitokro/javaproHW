@@ -1,4 +1,4 @@
-package CurrencyExchange.db;
+package ua.kiev.prog.db.DAO;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -6,7 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.*;
 
-public class AbstractDAO<T> implements DAO<T> {
+public class AbstractDAO<K, T> implements DAO<K, T> {
     private final Connection conn;
     private final String table;
     private final Class<?> cls;
@@ -80,7 +80,7 @@ public class AbstractDAO<T> implements DAO<T> {
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(K id) {
         Field[] fields = cls.getDeclaredFields();
         Field idField = getFieldId(fields);
 
@@ -125,9 +125,12 @@ public class AbstractDAO<T> implements DAO<T> {
     }
 
     @Override
-    public Optional<T> get(int id) {
+    public Optional<T> get(K id) {
+        Field[] fields = cls.getClass().getDeclaredFields();
+        Field idField = getFieldId(fields);
         try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM " + table + " WHERE id = " + id)) {
+             ResultSet rs = st.executeQuery(String.format(
+                     "SELECT * FROM %s WHERE %s = %s", table, idField.getName(),id))) {
             if (rs.next()) {
                 T t = initT(rs);
                 return Optional.of(t);
@@ -157,8 +160,7 @@ public class AbstractDAO<T> implements DAO<T> {
     @Override
     public void create() {
         try {
-            Statement st = conn.createStatement();
-            try {
+            try (Statement st = conn.createStatement()) {
                 Field[] fields = cls.getDeclaredFields();
                 Field id = null;
                 Set<Field> otherFields = new HashSet<>();
@@ -171,29 +173,38 @@ public class AbstractDAO<T> implements DAO<T> {
                 }
                 if (id == null)
                     throw new RuntimeException("No Id field");
-                StringBuilder sqlCreateTable = new StringBuilder();
-                sqlCreateTable.append("CREATE TABLE ")
-                        .append(table)
-                        .append(" (")
-                        .append(id.getName())
-                        .append(" INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ");
 
-                for (Field field : otherFields) {
-                    if (String.class == field.getType())
-                        sqlCreateTable.append(field.getName()).append("  VARCHAR(20) NOT NULL, ");
-                    if (int.class == field.getType())
-                        sqlCreateTable.append(field.getName()).append("  INT,");
-                }
-                sqlCreateTable.append(")");
-                sqlCreateTable.deleteCharAt(sqlCreateTable.length() - 2);
                 st.execute("DROP TABLE IF EXISTS " + table);
-                st.execute(sqlCreateTable.toString());
-            } finally {
-                st.close();
+                st.execute(getCreateSQL(id, otherFields));
             }
         } catch (SQLException ex) {
-            throw new RuntimeException(ex);
+            System.out.println(ex);
         }
+    }
+
+    private String getCreateSQL(Field id, Set<Field> otherFields) {
+        StringBuilder sqlCreateTable = new StringBuilder();
+        sqlCreateTable.append("CREATE TABLE ")
+                .append(table)
+                .append(" (")
+                .append(id.getName())
+                .append(" ");
+        if (id.getType().getSimpleName().equals("int"))
+            sqlCreateTable.append(" INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ");
+        else if (id.getType().getSimpleName().equals("String"))
+            sqlCreateTable.append(" VARCHAR(255) NOT NULL PRIMARY KEY, ");
+
+        for (Field field : otherFields) {
+            if (String.class == field.getType())
+                sqlCreateTable.append(field.getName()).append("  VARCHAR(20) NOT NULL,");
+            if (int.class == field.getType())
+                sqlCreateTable.append(field.getName()).append("  INT,");
+            if (float.class == field.getType())
+                sqlCreateTable.append(field.getName()).append("  FLOAT,");
+        }
+        sqlCreateTable.append(")");
+        sqlCreateTable.deleteCharAt(sqlCreateTable.length() - 2);
+        return sqlCreateTable.toString();
     }
 
 }

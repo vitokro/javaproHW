@@ -1,4 +1,4 @@
-package CurrencyExchange;
+package ua.kiev.prog.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,7 +37,6 @@ public class Rates {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         byte[] buf = new byte[10240];
         int r;
-
         do {
             r = is.read(buf);
             if (r > 0) bos.write(buf, 0, r);
@@ -50,41 +49,26 @@ public class Rates {
         return date;
     }
 
-    public void setDate(String date) {
-        this.date = date;
-    }
 
     public String getBank() {
         return bank;
     }
 
-    public void setBank(String bank) {
-        this.bank = bank;
-    }
 
     public String getBaseCurrency() {
         return baseCurrency;
     }
 
-    public void setBaseCurrency(String baseCurrency) {
-        this.baseCurrency = baseCurrency;
-    }
 
     public String getBaseCurrencyLit() {
         return baseCurrencyLit;
     }
 
-    public void setBaseCurrencyLit(String baseCurrencyLit) {
-        this.baseCurrencyLit = baseCurrencyLit;
-    }
 
     public List<ExchangeRate> getExchangeRate() {
         return exchangeRate;
     }
 
-    public void setExchangeRate(List<ExchangeRate> exchangeRate) {
-        this.exchangeRate = exchangeRate;
-    }
 
     @Override
     public String toString() {

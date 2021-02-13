@@ -1,4 +1,4 @@
-package CurrencyExchange;
+package ua.kiev.prog.json;
 
 public class ExchangeRate {
     private String baseCurrency;

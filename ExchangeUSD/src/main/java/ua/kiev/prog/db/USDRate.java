@@ -1,10 +1,9 @@
-package CurrencyExchange;
+package ua.kiev.prog.db;
 
-import CurrencyExchange.db.Id;
+import ua.kiev.prog.db.DAO.Id;
 
 public class USDRate {
     @Id
-    private int id;
     private String date;
     private float saleRate;
     private float purchaseRate;

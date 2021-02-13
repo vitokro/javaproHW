@@ -1,4 +1,4 @@
-package CurrencyExchange.db;
+package ua.kiev.prog.db.DAO;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
