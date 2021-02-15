@@ -1,4 +1,4 @@
-package ua.kiev.prog.db.DAO;
+package ua.kiev.prog.db.dao;
 
 import java.util.List;
 import java.util.Optional;

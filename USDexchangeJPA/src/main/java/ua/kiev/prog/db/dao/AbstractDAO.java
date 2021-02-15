@@ -1,4 +1,4 @@
-package ua.kiev.prog.db.DAO;
+package ua.kiev.prog.db.dao;
 
 import javax.persistence.EntityManager;
 import java.util.List;

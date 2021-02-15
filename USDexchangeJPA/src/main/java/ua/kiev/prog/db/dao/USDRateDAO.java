@@ -1,4 +1,4 @@
-package ua.kiev.prog.db.DAO;
+package ua.kiev.prog.db.dao;
 
 import ua.kiev.prog.db.USDRate;
 

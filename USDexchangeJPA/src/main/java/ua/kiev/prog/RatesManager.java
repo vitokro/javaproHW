@@ -1,7 +1,7 @@
 package ua.kiev.prog;
 
-import ua.kiev.prog.db.DAO.DAO;
-import ua.kiev.prog.db.DAO.USDRateDAO;
+import ua.kiev.prog.db.dao.DAO;
+import ua.kiev.prog.db.dao.USDRateDAO;
 import ua.kiev.prog.db.USDRate;
 import ua.kiev.prog.json.ExchangeRate;
 import ua.kiev.prog.json.Rates;
