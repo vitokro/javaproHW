@@ -25,10 +25,12 @@ public class RatesManager {
 
     public void saveRatesFromWeb() throws IOException {
         DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
-        Calendar cal = new GregorianCalendar();
-
-        for (int i = 1; i < 3; i++) {
-            cal.set(2021, Calendar.JANUARY, i);
+//        DateFormat formatter = new SimpleDateFormat("yyyy.MM.dd");
+//        Calendar cal = new GregorianCalendar();
+        Calendar cal = Calendar.getInstance();
+        for (int i = 0; i < 3; i++) {
+//            cal.set(2021, Calendar.JANUARY, i);
+            cal.add(Calendar.DATE, i);
             String date = formatter.format(cal.getTime());
 
             Rates rateForDate = Rates.getRateForDate(date);

@@ -4,7 +4,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-public class AbstractDAO<K, T> implements DAO<K, T> {
+public abstract class AbstractDAO<K, T> implements DAO<K, T> {
     final private EntityManager em;
     final private Class<T> cls;
 

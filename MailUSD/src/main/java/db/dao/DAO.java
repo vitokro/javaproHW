@@ -1,4 +1,4 @@
-package ua.kiev.prog.db.dao;
+package db.dao;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,22 +8,16 @@ public interface DAO<K, T> {
 
     List<T> getAll();
 
-    void insert(T t);
+    List<T> getLastN(int n);
 
-    void update(T t);
+    void insert(T t);
 
     void delete(K id);
 
-    float getSaleMax();
-
-    float getPurchaseMax();
+    void update(T t);
 
     double getPurchaseAvg();
 
     double getSaleAvg();
-
-    float getSaleMin();
-
-    float getPurchaseMin();
 
 }
