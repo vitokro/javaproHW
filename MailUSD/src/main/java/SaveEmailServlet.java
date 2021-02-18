@@ -1,11 +1,10 @@
-import db.entity.Email;
 import db.dao.DAO;
 import db.dao.EmailDAO;
+import db.entity.Email;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.persistence.EntityManager;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +15,7 @@ import java.io.IOException;
 public class SaveEmailServlet extends HttpServlet {
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         EntityManager em = ContextListener.getEntityManager();
         String email = req.getParameter("email");
         if (!isValidEmailAddress(email)) {
