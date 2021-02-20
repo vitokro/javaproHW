@@ -3,9 +3,9 @@ package ua.kiev.prog;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import json.PrivatBankRates;
-import json.PrivatBankRatesList;
 import ua.kiev.prog.db.dao.DAO;
 import ua.kiev.prog.db.dao.ExchangeRatesDAO;
+import ua.kiev.prog.db.entity.Account;
 import ua.kiev.prog.db.entity.Currency;
 import ua.kiev.prog.db.entity.ExchangeRates;
 
@@ -13,20 +13,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 /**
  * Hello world!
  */
 public class App {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 //         Создать базу данных «Банк» с таблицами «Пользователи»,
 //«Транзакции», «Счета» и «Курсы валют». Счет бывает 3-х видов:
 //USD, EUR, UAH. Написать запросы для пополнения счета в нужной
@@ -41,10 +37,18 @@ public class App {
         try {
 
             getRatesFromPB(em);
-            Client bank = Client.createNewClient("Bank, ATM or terminal", em);
+            Client bank = Client.createNewClient("WorldBank", em);
+            bank.createNewAccount("USD BANK ACCOUNT", Currency.USD);
+            Account bankUSD = bank.createNewAccount("Second USD BANK ACCOUNT", Currency.USD);
+            final Account bankEUR = bank.createNewAccount("Euro ACCOUNT", Currency.EUR);
+            Account bankUAH = bank.createNewAccount("UAH super Account", Currency.UAH);
+
+            System.out.println(bank.getAccounts());
+            bank.transferMoney(bankUAH, bankUSD, BigDecimal.valueOf(100));
+            bank.transferMoney(bankEUR, bankUAH, BigDecimal.valueOf(100));
 
             Client markAnthony = Client.createNewClient("Mark Anthony", em);
-            bank.transferMoneyTo(markAnthony, BigDecimal.valueOf(100), Currency.UAH);
+            bank.transferMoneyTo(markAnthony, BigDecimal.valueOf(66.66), Currency.UAH);
 
             Client caesar = Client.createNewClient("Caesar", em);
             bank.transferMoneyTo(caesar, BigDecimal.valueOf(1000.99), Currency.UAH);
@@ -53,14 +57,22 @@ public class App {
             bank.transferMoneyTo(markAnthony, BigDecimal.valueOf(-10), Currency.UAH);
 
             markAnthony.transferMoneyTo(brut, BigDecimal.valueOf(50), Currency.UAH);
+            final Account markUSD = markAnthony.createNewAccount("USD Account VISA", Currency.USD);
+            final Account markUAH = markAnthony.createNewAccount("UAH Account MasterCard", Currency.UAH);
+            final Account markEUR = markAnthony.createNewAccount("EUR Account noname", Currency.EUR);
+
+            markAnthony.transferMoney(markUAH, markUSD, BigDecimal.valueOf(2000));
+            bank.transferMoneyTo(markAnthony, BigDecimal.valueOf(1000), Currency.EUR);
+            markAnthony.transferMoney(markEUR, markUAH, BigDecimal.valueOf(666.89));
+
             System.out.println("----------------------------------------------------------------------------------------");
             System.out.println("Mark Anthony = " + markAnthony.getDebit());
             System.out.println("Brut = " + brut.getDebit());
             System.out.println("Caesar = " + caesar.getDebit());
             System.out.println("----------------------------------------------------------------------------------------");
 
-//        } catch (IOException e) {
-//            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             em.close();
             emf.close();

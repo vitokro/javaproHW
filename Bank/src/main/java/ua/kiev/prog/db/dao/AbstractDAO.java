@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractDAO<T> implements DAO<Integer, T> {
-    final private EntityManager em;
+    final protected EntityManager em;
     final private Class<T> cls;
 
     public AbstractDAO(EntityManager em, Class<T> cls) {

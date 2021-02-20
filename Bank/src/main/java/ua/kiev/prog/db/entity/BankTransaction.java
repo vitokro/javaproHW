@@ -6,7 +6,7 @@ import java.sql.Date;
 
 @Entity
 @Table(name = "Transactions")
-public class Transaction {
+public class BankTransaction {
     @Id
     @GeneratedValue
     private Integer id;
@@ -25,14 +25,14 @@ public class Transaction {
     @Column(nullable = false)
     private Date date;
 
-    public Transaction(Account accountFrom, Account accountTo, BigDecimal sum, Date date) {
+    public BankTransaction(Account accountFrom, Account accountTo, BigDecimal sum, Date date) {
         this.accountFrom = accountFrom;
         this.accountTo = accountTo;
         this.sum = sum;
         this.date = date;
     }
 
-    public Transaction() {
+    public BankTransaction() {
     }
 
     public Integer getId() {

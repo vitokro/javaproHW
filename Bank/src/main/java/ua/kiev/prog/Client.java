@@ -2,23 +2,22 @@ package ua.kiev.prog;
 
 import ua.kiev.prog.db.dao.ClientDAO;
 import ua.kiev.prog.db.dao.DAO;
+import ua.kiev.prog.db.dao.ExchangeRatesDAO;
 import ua.kiev.prog.db.dao.TransactionDAO;
 import ua.kiev.prog.db.entity.Account;
 import ua.kiev.prog.db.entity.ClientEntity;
 import ua.kiev.prog.db.entity.Currency;
+import ua.kiev.prog.db.entity.BankTransaction;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Client {
 
     private String name;
     private int id;
-    private List<Account> accounts = new ArrayList<>();
-    //    private BigDecimal debit;
     private EntityManager em;
 
     private Client(String name, EntityManager em) {
@@ -34,20 +33,26 @@ public class Client {
         clientEntity.addAccount(acc);
         clientDAO.insert(clientEntity);
 
-
         final Client client = new Client(name, em);
         client.id = clientEntity.getId();
-        client.accounts.add(acc);
-//        client.transferMoneyTo(null, acc, new BigDecimal(100));
         return client;
     }
 
-    public void createNewAccount(Account account) {
-        accounts.add(account);
+    public Account createNewAccount(String name, Currency currency) {
+        final ClientEntity clientEntity = getClientEntity();
+        final Account account = new Account(name, currency, clientEntity);
+        clientEntity.addAccount(account);
+
+        return account;
+    }
+
+    private ClientEntity getClientEntity() {
+        DAO<Integer, ClientEntity> clientDAO = new ClientDAO(em);
+        return clientDAO.get(id).orElseThrow();
     }
 
 
-    public void transferMoneyTo(Account accountFrom, Account accountTo, BigDecimal money) {
+    public void transferMoney(Account accountFrom, Account accountTo, BigDecimal money) {
         TransactionDAO transactionDAO = new TransactionDAO(em);
         BigDecimal moneyTo = money;
         if (accountFrom.getCurrency() != accountTo.getCurrency())
@@ -58,17 +63,14 @@ public class Client {
     }
 
     private BigDecimal convertMoney(Currency currencyFrom, Currency currencyTo, BigDecimal money) {
-        //todo
-        final TypedQuery<BigDecimal> query = em.createQuery("SELECT e.buy FROM exchange_rates e " +
-                "WHERE e.base_currency = :base " +
-                "AND e.currency = :curr", BigDecimal.class);
-        query.setParameter("base", currencyFrom);
-        query.setParameter("curr", currencyTo);
-        return query.getSingleResult();
-    }
+        if (currencyFrom != Currency.UAH && currencyTo != Currency.UAH )
+            throw new IllegalArgumentException("Transfer may be either from UAH or to UAH");
 
-    private BigDecimal convertToUAH(Currency currencyFrom, BigDecimal money) {
-        return convertMoney(currencyFrom, Currency.UAH, money);
+        ExchangeRatesDAO exDAO = new ExchangeRatesDAO(em);
+        if (currencyFrom == Currency.UAH) {
+            return exDAO.convertUAHto(currencyTo, money);
+        } else
+            return exDAO.convertToUAH(currencyFrom, money);
     }
 
     public void transferMoneyTo(Client client, BigDecimal money, Currency currency) {
@@ -81,25 +83,29 @@ public class Client {
                 .filter(account -> account.getCurrency() == currency)
                 .findFirst()
                 .orElseThrow();
-        transferMoneyTo(accountFrom, accountTo, money);
+        transferMoney(accountFrom, accountTo, money);
     }
 
-    public List<Account> getAccounts() {
-        return accounts;
+    public Set<Account> getAccounts() {
+        return getClientEntity().getAccounts();
     }
 
     public BigDecimal getDebit() {
         BigDecimal debit = BigDecimal.ZERO;
 
-        for (Account account : accounts) {
+        for (Account account : getAccounts()) {
             final BigDecimal amount = account.getAmount();
             final Currency currency = account.getCurrency();
             if (currency == Currency.UAH)
                 debit = debit.add(amount);
             else
-                debit = debit.add(convertToUAH(currency, amount));
+                debit = debit.add(new ExchangeRatesDAO(em).convertToUAH(currency, amount));
         }
 
         return debit;
+    }
+
+    public List<BankTransaction> getTransactions(){
+        return null;
     }
 }

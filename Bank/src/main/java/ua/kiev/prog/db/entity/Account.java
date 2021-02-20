@@ -28,10 +28,10 @@ public class Account {
     private ClientEntity clientEntity;
 
     @OneToMany(mappedBy = "accountFrom", cascade = CascadeType.ALL)
-    private List<Transaction> transactionsFrom = new ArrayList<>();
+    private List<BankTransaction> transactionsFrom = new ArrayList<>();
 
     @OneToMany(mappedBy = "accountTo", cascade = CascadeType.ALL)
-    private List<Transaction> transactionsTo = new ArrayList<>();
+    private List<BankTransaction> transactionsTo = new ArrayList<>();
 
     public Account(String name, Currency currency, ClientEntity clientEntity) {
         this.name = name;
@@ -90,19 +90,19 @@ public class Account {
         this.clientEntity = clientEntity;
     }
 
-    public List<Transaction> getTransactionsFrom() {
+    public List<BankTransaction> getTransactionsFrom() {
         return transactionsFrom;
     }
 
-    public void setTransactionsFrom(List<Transaction> transactionsFrom) {
+    public void setTransactionsFrom(List<BankTransaction> transactionsFrom) {
         this.transactionsFrom = transactionsFrom;
     }
 
-    public List<Transaction> getTransactionsTo() {
+    public List<BankTransaction> getTransactionsTo() {
         return transactionsTo;
     }
 
-    public void setTransactionsTo(List<Transaction> transactionsTo) {
+    public void setTransactionsTo(List<BankTransaction> transactionsTo) {
         this.transactionsTo = transactionsTo;
     }
 
@@ -126,6 +126,7 @@ public class Account {
         return "Account{" +
                 "name='" + name + '\'' +
                 ", currency=" + currency +
+                ", amount=" + amount +
                 ", client=" + clientEntity +
                 '}';
     }
