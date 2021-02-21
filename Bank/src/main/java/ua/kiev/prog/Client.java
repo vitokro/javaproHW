@@ -5,13 +5,15 @@ import ua.kiev.prog.db.dao.DAO;
 import ua.kiev.prog.db.dao.ExchangeRatesDAO;
 import ua.kiev.prog.db.dao.TransactionDAO;
 import ua.kiev.prog.db.entity.Account;
+import ua.kiev.prog.db.entity.BankTransaction;
 import ua.kiev.prog.db.entity.ClientEntity;
 import ua.kiev.prog.db.entity.Currency;
-import ua.kiev.prog.db.entity.BankTransaction;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class Client {
@@ -29,8 +31,8 @@ public class Client {
         DAO<Integer, ClientEntity> clientDAO = new ClientDAO(em);
         final ClientEntity clientEntity = new ClientEntity(name);
 
-        final Account acc = new Account("Simple UAH account", Currency.UAH, clientEntity);
-        clientEntity.addAccount(acc);
+//        final Account acc = new Account("Simple UAH account", Currency.UAH, clientEntity);
+//        clientEntity.addAccount(acc);
         clientDAO.insert(clientEntity);
 
         final Client client = new Client(name, em);
@@ -52,28 +54,28 @@ public class Client {
     }
 
 
-    public void transferMoney(Account accountFrom, Account accountTo, BigDecimal money) {
+    public boolean transferMoney(Account accountFrom, Account accountTo, BigDecimal money)  {
         TransactionDAO transactionDAO = new TransactionDAO(em);
-        BigDecimal moneyTo = money;
+        BigDecimal rate = BigDecimal.ONE;
         if (accountFrom.getCurrency() != accountTo.getCurrency())
-            moneyTo = convertMoney(accountFrom.getCurrency(), accountTo.getCurrency(), money);
+            rate = getExchangeRate(accountFrom.getCurrency(), accountTo.getCurrency());
 
-        transactionDAO.transferMoney(accountFrom, accountTo, money, moneyTo);
+        return transactionDAO.transferMoney(accountFrom, accountTo, money, rate);
 
     }
 
-    private BigDecimal convertMoney(Currency currencyFrom, Currency currencyTo, BigDecimal money) {
-        if (currencyFrom != Currency.UAH && currencyTo != Currency.UAH )
-            throw new IllegalArgumentException("Transfer may be either from UAH or to UAH");
+    private BigDecimal getExchangeRate(Currency currencyFrom, Currency currencyTo) {
+        final boolean isFromUAH = (currencyFrom == Currency.UAH);
+        if (!isFromUAH && currencyTo != Currency.UAH)
+            throw new IllegalArgumentException("Transfer may not be without UAH");
+        if (isFromUAH)
+            return new ExchangeRatesDAO(em).getSaleRate(currencyTo);
+        else
+            return new ExchangeRatesDAO(em).getBuyRate(currencyFrom);
 
-        ExchangeRatesDAO exDAO = new ExchangeRatesDAO(em);
-        if (currencyFrom == Currency.UAH) {
-            return exDAO.convertUAHto(currencyTo, money);
-        } else
-            return exDAO.convertToUAH(currencyFrom, money);
     }
 
-    public void transferMoneyTo(Client client, BigDecimal money, Currency currency) {
+    public void transferMoneyTo(Client client, BigDecimal money, Currency currency) throws NoSuchElementException {
         final Account accountFrom = this.getAccounts().stream()
                 .filter(account -> account.getCurrency() == currency)
                 .findFirst()
@@ -98,14 +100,22 @@ public class Client {
             final Currency currency = account.getCurrency();
             if (currency == Currency.UAH)
                 debit = debit.add(amount);
-            else
-                debit = debit.add(new ExchangeRatesDAO(em).convertToUAH(currency, amount));
+            else {
+                final BigDecimal rate = new ExchangeRatesDAO(em).getBuyRate(currency);
+                debit = debit.add(amount.multiply(rate));
+            }
         }
 
         return debit;
     }
 
-    public List<BankTransaction> getTransactions(){
-        return null;
+    public List<BankTransaction> getTransactions() {
+        List<BankTransaction> transactions = new ArrayList<>();
+        for (Account account : getAccounts()) {
+            transactions.addAll(account.getTransactionsFrom());
+            transactions.addAll(account.getTransactionsTo());
+        }
+        transactions.sort((o1, o2) -> o1.getId() - o2.getId());
+        return transactions;
     }
 }

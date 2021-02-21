@@ -50,6 +50,16 @@ public class Account {
         amount = amount.subtract(money);
     }
 
+    public void addTransactionFrom(BankTransaction tran){
+        if (!transactionsFrom.contains(tran))
+            transactionsFrom.add(tran);
+    }
+
+    public void addTransactionTo(BankTransaction tran){
+        if (!transactionsTo.contains(tran))
+            transactionsTo.add(tran);
+    }
+
     public BigDecimal getAmount() {
         return amount;
     }

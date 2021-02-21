@@ -14,29 +14,40 @@ public class ExchangeRatesDAO extends AbstractDAO<ExchangeRates> {
         super(em, ExchangeRates.class);
     }
 
-    public BigDecimal convertToUAH(Currency currencyFrom, BigDecimal money) {
-        final TypedQuery<BigDecimal> query = em.createQuery(
-                "SELECT e.buy FROM ExchangeRates e " +
-                        "WHERE e.base_currency = :base " +
-                        "AND e.currency = :curr", BigDecimal.class);
-
-        query.setParameter("base", Currency.UAH);
-        query.setParameter("curr", currencyFrom);
-        BigDecimal saleRate = query.getSingleResult();
-
-        return saleRate.setScale(2, RoundingMode.CEILING).multiply(money);
-    }
-
-    public BigDecimal convertUAHto(Currency currencyTo, BigDecimal money) {
+    public BigDecimal getSaleRate(Currency currency) {
         final TypedQuery<BigDecimal> query = em.createQuery(
                 "SELECT e.sale FROM ExchangeRates e " +
                         "WHERE e.base_currency = :base " +
                         "AND e.currency = :curr", BigDecimal.class);
 
         query.setParameter("base", Currency.UAH);
-        query.setParameter("curr", currencyTo);
-        BigDecimal saleRate = query.getSingleResult();
+        query.setParameter("curr", currency);
 
-        return money.setScale(2, RoundingMode.CEILING).divide(saleRate, RoundingMode.CEILING);
+        return query.getSingleResult();
     }
+
+    public BigDecimal getBuyRate(Currency currency) {
+        final TypedQuery<BigDecimal> query = em.createQuery(
+                "SELECT e.buy FROM ExchangeRates e " +
+                        "WHERE e.base_currency = :base " +
+                        "AND e.currency = :curr", BigDecimal.class);
+
+        query.setParameter("base", Currency.UAH);
+        query.setParameter("curr", currency);
+
+        return query.getSingleResult();
+    }
+
+//    public BigDecimal rateUAHtoXXX(Currency currencyTo, BigDecimal money) {
+//        final TypedQuery<BigDecimal> query = em.createQuery(
+//                "SELECT e.sale FROM ExchangeRates e " +
+//                        "WHERE e.base_currency = :base " +
+//                        "AND e.currency = :curr", BigDecimal.class);
+//
+//        query.setParameter("base", Currency.UAH);
+//        query.setParameter("curr", currencyTo);
+//        BigDecimal saleRate = query.getSingleResult();
+//
+//        return BigDecimal.ONE.divide(saleRate, 10, RoundingMode.CEILING);
+//    }
 }
