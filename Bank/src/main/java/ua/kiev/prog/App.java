@@ -77,8 +77,6 @@ public class App {
 
         } catch (IOException | NoSuchElementException e) {
             e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             em.close();
             emf.close();
